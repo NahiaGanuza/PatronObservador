@@ -1,1 +1,1 @@
-# PatronObservador
+# Patrón Observador
