@@ -50,4 +50,45 @@ public class YouTubeAPIService {
             e.printStackTrace();
         }
     }
+
+    public List<String> getAvailableChannels(String searchQuery) {
+        Set<String> channelTitles = new HashSet<>();
+        int maxResults = 5;
+
+        try {
+            String urlString = String.format("%s?part=snippet&maxResults=%d&q=%s&type=channel&key=%s",
+                    BASE_URL, maxResults, searchQuery.replace(" ", "%20"), API_KEY);
+
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                JSONArray items = jsonResponse.getJSONArray("items");
+
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject channel = items.getJSONObject(i).getJSONObject("snippet");
+                    String channelTitle = channel.getString("channelTitle");
+                    channelTitles.add(channelTitle);
+                }
+            } else {
+                System.out.println("Error en la conexión: " + responseCode);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>(channelTitles);
+    }
 }
