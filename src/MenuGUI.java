@@ -2,12 +2,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MenuGUI extends JFrame {
+    private YouTubeAPIService apiService;
+    private List<UserGUI> userGUIs = new ArrayList<UserGUI>();
+
     public MenuGUI() {
+        apiService = new YouTubeAPIService();
+
         // Set up the frame
         setTitle("Youtube Notification Program");
-        setSize(350, 250);
+        setSize(350, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -28,6 +35,10 @@ public class MenuGUI extends JFrame {
         JButton createUserButton = new JButton("Create User");
         createUserButton.setPreferredSize(new Dimension(100, 50));
 
+        //Create button "Refresh"
+        JButton refreshButton = new JButton("Send Notifications");
+        refreshButton.setPreferredSize(new Dimension(100, 50));
+
         // Add action listeners
         createUserButton.addActionListener(new ActionListener() {
             @Override
@@ -39,9 +50,35 @@ public class MenuGUI extends JFrame {
                     return;
                 }
 
-                // create a UserGUI object
-                UserGUI userGUI = new UserGUI(userName);
-                userGUI.setVisible(true);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        //check if user already exists
+                        for (UserGUI userGUI : userGUIs) {
+                            if (userGUI.getUserName().equals(userName)) {
+                                JOptionPane.showMessageDialog(null, "User already exists");
+                                return;
+                            }
+                        }
+                        UserGUI userGUI = new UserGUI(userName, apiService);
+                        userGUI.setVisible(true);
+                        userGUIs.add(userGUI);
+                    }
+                });
+
+            }
+        });
+
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (YouTubeChannel channel : apiService.getChannels()) {
+                    apiService.fetchVideos(channel);
+                }
+                for (UserGUI userGUI : userGUIs) {
+                    userGUI.updateNotificationArea();
+                    userGUI.getSubscriber().clearLastNotifications();
+                }
             }
         });
 
@@ -59,6 +96,13 @@ public class MenuGUI extends JFrame {
         gbc.weighty = 1;
         gbc.anchor = GridBagConstraints.CENTER;
         panel.add(createUserButton, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(refreshButton, gbc);
 
         // Add panel to frame
         add(panel);

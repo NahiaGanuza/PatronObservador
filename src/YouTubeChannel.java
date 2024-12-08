@@ -26,4 +26,9 @@ public class YouTubeChannel {
     public String getSearchQuery() {
         return searchQuery;
     }
+
+    public List<Observer> getObservers() {
+        return observers;
+    }
+
 }
