@@ -2,10 +2,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -116,12 +113,27 @@ public class YouTubeAPIService {
                                 JSONObject videosJsonResponse = new JSONObject(videosResponse.toString());
                                 JSONArray videosItems = videosJsonResponse.getJSONArray("items");
 
+                                List<JSONObject> videoList = new ArrayList<>();
                                 for (int i = 0; i < videosItems.length(); i++) {
-                                    JSONObject video = videosItems.getJSONObject(i).getJSONObject("snippet");
+                                    videoList.add(videosItems.getJSONObject(i).getJSONObject("snippet"));
+                                }
+
+                                // Sort videos by upload date
+                                Collections.sort(videoList, new Comparator<JSONObject>() {
+                                    @Override
+                                    public int compare(JSONObject video1, JSONObject video2) {
+                                        String date1 = video1.getString("publishedAt");
+                                        String date2 = video2.getString("publishedAt");
+                                        return date2.compareTo(date1);
+                                    }
+                                });
+
+                                for (JSONObject video : videoList) {
                                     String videoTitle = video.getString("title");
                                     String channelTitle = video.getString("channelTitle");
+                                    String uploadDate = video.getString("publishedAt");
 
-                                    channel.notifyObservers(videoTitle, channelTitle);
+                                    channel.notifyObservers(videoTitle, channelTitle, uploadDate);
                                 }
                             } else {
                                 System.out.println("Error fetching videos: " + videosResponseCode);

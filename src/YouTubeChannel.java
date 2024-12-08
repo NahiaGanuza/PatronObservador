@@ -17,9 +17,9 @@ public class YouTubeChannel {
         observers.remove(observer);
     }
 
-    public void notifyObservers(String videoTitle, String channelTitle) {
+    public void notifyObservers(String videoTitle, String channelTitle, String uploadDate) {
         for (Observer observer : observers) {
-            observer.update(videoTitle, channelTitle);
+            observer.update(videoTitle, channelTitle, uploadDate);
         }
     }
 
@@ -30,5 +30,4 @@ public class YouTubeChannel {
     public List<Observer> getObservers() {
         return observers;
     }
-
 }
